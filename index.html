@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle Financeiro - Gustavo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <main class="container">
+        <header>
+            <h1>Minhas Finanças</h1>
+            <p>Controle seus gastos de forma simples.</p>
+        </header>
+        <section class="resumo">
+            <div class="card">
+                <span>Total de gastos</span>
+                <strong id="totalGastos">R$ 0,00</strong>
+            </div>
+            <div class="card">
+                <span>Registros</span>
+                <strong id="totalRegistros">0</strong>
+            </div>
+        </section>
+        <section class="formulario">
+            <h2>Adicionar registro</h2>
+            <form id="formFinanca">
+                <div class="campo">
+                    <label for="valor">Valor</label>
+                    <input type="number" id="valor" placeholder="Ex: 25.90" step="0.01" min="0" required>
+                </div>
+                <div class="campo">
+                    <label for="descricao">Descrição</label>
+                    <input type="text" id="descricao" placeholder="Ex: Almoço" required>
+                </div>
+                <div class="campo">
+                    <label for="categoria">Categoria</label>
+                    <select id="categoria" required>
+                        <option value="">Selecione</option>
+                        <option value="Comida">Comida</option>
+                        <option value="Lazer">Lazer</option>
+                        <option value="Investimento">Investimento</option>
+                        <option value="Estudos">Estudos</option>
+                        <option value="Outros">Outros...</option>
+                    </select>
+                </div>
+                <div class="campo">
+                    <label for="data">Data</label>
+                    <input type="date" id="data" required>
+                </div>
+                <button type="submit" id="btnSalvar">
+                    Adicionar registro
+                </button>
+            </form>
+        </section>
+   
+        <section class="lista">
+            <div class="titulo-lista">
+                <h2>Meus registros</h2>
+                <button id="btnLimpar" class="btn-limpar">
+                    Limpar tudo
+                </button>
+            </div>
+            <div id="listaRegistros">
+                <p class="vazio">
+                    Nenhum registro encontrado.
+                </p>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
+<script>
+    const form = document.getElementById("formFinanca");
+    const valorInput = document.getElementById("valor");
+    const descricaoInput = document.getElementById("descricao");
+    const categoriaInput = document.getElementById("categoria");
+    const dataInput = document.getElementById("data");
+    const listaRegistros = document.getElementById("listaRegistros");
+    const totalGastos = document.getElementById("totalGastos");
+    const totalRegistros = document.getElementById("totalRegistros");
+    const btnSalvar = document.getElementById("btnSalvar");
+    const btnLimpar = document.getElementById("btnLimpar");
+    let registros = JSON.parse(localStorage.getItem("registros")) || [];
+    let registroEditando = null;
+
+    form.addEventListener("submit", function (event) {
+
+        event.preventDefault();
+
+        const registro = {
+
+            id: registroEditando != null
+                ? registroEditando
+                : Date.now(),
+
+            valor: Number(valorInput.value),
+
+            descricao: descricaoInput.value,
+
+            categoria: categoriaInput.value,
+
+            data: dataInput.value
+
+        };
+
+
+        if (registroEditando != null) {
+
+            registros = registros.map(item => {
+
+                if (item.id == registroEditando) {
+                    return registro;
+                }
+
+                return item;
+            });
+
+            registroEditando = null;
+
+            btnSalvar.textContent = "Adicionar registro";
+
+        } else {
+
+            registros.push(registro);
+
+        }
+
+
+        salvarDados();
+
+        form.reset();
+
+        renderizarRegistros();
+
+    });
+
+    function renderizarRegistros() {
+
+        listaRegistros.innerHTML = "";
+
+
+        if (registros.length == 0) {
+
+            listaRegistros.innerHTML = `
+            <p class="vazio">
+                Nenhum registro encontrado.
+            </p>
+        `;
+
+            atualizarResumo();
+
+            return;
+        }
+
+
+        registros.forEach(registro => {
+
+            const div = document.createElement("div");
+
+            div.classList.add("registro");
+
+
+            div.innerHTML = `
+
+            <div class="registro-info">
+
+                <strong>
+                    ${registro.descricao}
+                </strong>
+
+                <span>
+                    ${registro.categoria}
+                    
+                    ${formatarData(registro.data)}
+                </span>
+
+            </div>
+
+
+            <div class="registro-valor">
+
+                R$ ${registro.valor.toFixed(2).replace(".", ",")}
+
+            </div>
+
+
+            <div class="acoes">
+
+                <button
+                    class="editar"
+                    onclick="editarRegistro(${registro.id})"
+                >
+                    Editar
+                </button>
+
+                <button
+                    class="excluir"
+                    onclick="excluirRegistro(${registro.id})"
+                >
+                    Excluir
+                </button>
+
+            </div>
+
+        `;
+
+
+            listaRegistros.appendChild(div);
+
+        });
+
+
+        atualizarResumo();
+
+    }
+
+    function editarRegistro(id) {
+
+        const registro = registros.find(item => item.id == id);
+
+
+        if (!registro) {
+            return;
+        }
+
+
+        valorInput.value = registro.valor;
+
+        descricaoInput.value = registro.descricao;
+
+        categoriaInput.value = registro.categoria;
+
+        dataInput.value = registro.data;
+
+
+        registroEditando = id;
+
+        btnSalvar.textContent = "Salvar alterações";
+
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+
+    }
+
+
+    function excluirRegistro(id) {
+
+        const confirmar = confirm(
+            "Deseja realmente excluir este registro?"
+        );
+
+
+        if (!confirmar) {
+            return;
+        }
+
+
+        registros = registros.filter(
+            registro => registro.id != id
+        );
+
+
+        salvarDados();
+
+        renderizarRegistros();
+
+    }
+
+    btnLimpar.addEventListener("click", function () {
+
+        if (registros.length == 0) {
+            return;
+        }
+
+
+        const confirmar = confirm(
+            "Deseja excluir todos os registros?"
+        );
+
+
+        if (!confirmar) {
+            return;
+        }
+
+
+        registros = [];
+
+        salvarDados();
+
+        renderizarRegistros();
+
+    });
+
+    function salvarDados() {
+
+        localStorage.setItem(
+            "registros",
+            JSON.stringify(registros)
+        );
+
+    }
+
+
+    function atualizarResumo() {
+
+        const total = registros.reduce(
+            (soma, registro) => soma + registro.valor,
+            0
+        );
+
+
+        totalGastos.textContent =
+            `R$ ${total.toFixed(2).replace(".", ",")}`;
+
+
+        totalRegistros.textContent =
+            registros.length;
+
+    }
+
+    function formatarData(data) {
+
+        const partes = data.split("-");
+
+        return `${partes[2]}/${partes[1]}/${partes[0]}`;
+
+    }
+
+    renderizarRegistros();
+</script>
