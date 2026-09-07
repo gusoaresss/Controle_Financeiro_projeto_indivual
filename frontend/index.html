@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle Financeiro - Gustavo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+<main class="container">
+    <header>
+        <h1>Minhas Finanças</h1>
+        <p>Controle seus gastos de forma simples.</p>
+    </header>
+
+    <section class="resumo">
+        <div class="card">
+            <span>Saldo Atual</span>
+            <strong id="totalGastos">R$ 0,00</strong>
+        </div>
+        <div class="card">
+            <span>Registros</span>
+            <strong id="totalRegistros">0</strong>
+        </div>
+    </section>
+
+    <section class="formulario">
+        <h2>Adicionar registro</h2>
+        <form id="formFinanca">
+            <input type="hidden" id="registroId">
+
+            <div class="campo">
+                <label for="valor">Valor</label>
+                <input type="number" id="valor" placeholder="Ex: 25.90" step="0.01" min="0.01" required>
+            </div>
+
+            <div class="campo">
+                <label for="descricao">Descrição</label>
+                <input type="text" id="descricao" placeholder="Ex: Almoço" required>
+            </div>
+
+            <div class="campo">
+                <label for="categoria">Categoria</label>
+                <!-- REQUISITO: Dados populados via API Back-end -->
+                <select id="categoria" required>
+                    <option value="">Carregando...</option>
+                </select>
+            </div>
+
+            <div class="campo">
+                <label for="data">Data</label>
+                <input type="date" id="data" required>
+            </div>
+
+            <!-- REQUISITO: Radio Buttons -->
+            <div class="campo">
+                <label>Tipo de Transação</label>
+                <div style="display: flex; gap: 15px; margin-top: 5px;">
+                    <label><input type="radio" name="tipo" value="Despesa" checked> Despesa</label>
+                    <label><input type="radio" name="tipo" value="Receita"> Receita</label>
+                </div>
+            </div>
+
+            <!-- REQUISITO: Checkbox -->
+            <div class="campo" style="flex-direction: row; align-items: center; gap: 10px; margin-top: 10px;">
+                <input type="checkbox" id="pago">
+                <label for="pago" style="font-weight: normal;">Situação: Pago / Recebido</label>
+            </div>
+
+            <button type="submit" id="btnSalvar">Adicionar registro</button>
+        </form>
+    </section>
+
+    <section class="lista">
+        <div class="titulo-lista">
+            <h2>Meus registros</h2>
+        </div>
+        <div id="listaRegistros">
+            <p class="vazio">Nenhum registro encontrado.</p>
+        </div>
+    </section>
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
