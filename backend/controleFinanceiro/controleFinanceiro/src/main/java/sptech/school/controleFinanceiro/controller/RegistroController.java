@@ -1,7 +1,6 @@
 package sptech.school.controleFinanceiro.controller;
 
 import sptech.school.controleFinanceiro.model.Registro;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -17,11 +16,9 @@ public class RegistroController {
 
     private final JdbcTemplate jdbcTemplate;
 
-
     public RegistroController(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
-
 
     private final RowMapper<Registro> rowMapper = (rs, rowNum) -> {
         Registro r = new Registro();
@@ -29,27 +26,28 @@ public class RegistroController {
         r.setValor(rs.getDouble("valor"));
         r.setDescricao(rs.getString("descricao"));
         r.setCategoria(rs.getString("categoria"));
+
         if (rs.getDate("data_registro") != null) {
             r.setDataRegistro(rs.getDate("data_registro").toLocalDate());
         }
+
         r.setTipo(rs.getString("tipo"));
         r.setPago(rs.getBoolean("pago"));
+
         return r;
     };
-
 
     @GetMapping("/categorias")
     public List<String> getCategorias() {
         return Arrays.asList("Comida", "Lazer", "Investimento", "Estudos", "Saúde", "Outros");
     }
 
-
     @GetMapping
     public ResponseEntity<List<Registro>> listar() {
         List<Registro> lista = jdbcTemplate.query("SELECT * FROM registro", rowMapper);
-        return ResponseEntity.ok(lista); // 200 OK
-    }
 
+        return ResponseEntity.status(200).body(lista);
+    }
 
     @PostMapping
     public ResponseEntity<Void> criar(@RequestBody Registro registro) {
@@ -60,10 +58,17 @@ public class RegistroController {
                 registro.getDataRegistro() == null ||
                 registro.getTipo() == null || registro.getTipo().trim().isEmpty()) {
 
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return ResponseEntity.status(400).build();
+        }
+
+        Boolean pago = registro.getPago();
+
+        if (pago == null) {
+            pago = false;
         }
 
         String sql = "INSERT INTO registro (valor, descricao, categoria, data_registro, tipo, pago) VALUES (?, ?, ?, ?, ?, ?)";
+
         jdbcTemplate.update(
                 sql,
                 registro.getValor(),
@@ -71,12 +76,11 @@ public class RegistroController {
                 registro.getCategoria(),
                 registro.getDataRegistro(),
                 registro.getTipo(),
-                registro.getPago() != null ? registro.getPago() : false
+                pago
         );
 
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return ResponseEntity.status(201).build();
     }
-
 
     @PutMapping("/{id}")
     public ResponseEntity<Void> atualizar(@PathVariable Long id, @RequestBody Registro registro) {
@@ -87,10 +91,17 @@ public class RegistroController {
                 registro.getDataRegistro() == null ||
                 registro.getTipo() == null || registro.getTipo().trim().isEmpty()) {
 
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return ResponseEntity.status(400).build();
+        }
+
+        Boolean pago = registro.getPago();
+
+        if (pago == null) {
+            pago = false;
         }
 
         String sql = "UPDATE registro SET valor = ?, descricao = ?, categoria = ?, data_registro = ?, tipo = ?, pago = ? WHERE id = ?";
+
         int linhasAfetadas = jdbcTemplate.update(
                 sql,
                 registro.getValor(),
@@ -98,27 +109,27 @@ public class RegistroController {
                 registro.getCategoria(),
                 registro.getDataRegistro(),
                 registro.getTipo(),
-                registro.getPago() != null ? registro.getPago() : false,
+                pago,
                 id
         );
 
         if (linhasAfetadas == 0) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.status(404).build();
         }
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.status(200).build();
     }
-
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
         String sql = "DELETE FROM registro WHERE id = ?";
+
         int linhasAfetadas = jdbcTemplate.update(sql, id);
 
         if (linhasAfetadas == 0) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.status(404).build();
         }
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.status(204).build();
     }
 }

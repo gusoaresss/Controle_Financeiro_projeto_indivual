@@ -110,7 +110,7 @@ form.addEventListener("submit", async function (event) {
 
             carregarRegistros();
 
-        } else if (resposta.status === 400) {
+        } else if (resposta.status == 400) {
             alert(
                 "Erro de validação: O Back-end rejeitou os dados enviados."
             );
@@ -123,7 +123,7 @@ form.addEventListener("submit", async function (event) {
 
 
 function editarRegistro(id) {
-    const registro = registrosCache.find(r => r.id === id);
+    const registro = registrosCache.find(r => r.id == id);
 
     if (!registro) {
         return;
@@ -195,7 +195,7 @@ function renderizarRegistros() {
 
         let corValor;
 
-        if (registro.tipo === "Receita") {
+        if (registro.tipo == "Receita") {
             corValor = "#16a34a";
         } else {
             corValor = "#dc2626";
@@ -211,7 +211,7 @@ function renderizarRegistros() {
 
         let sinal;
 
-        if (registro.tipo === "Receita") {
+        if (registro.tipo == "Receita") {
             sinal = "+";
         } else {
             sinal = "-";
